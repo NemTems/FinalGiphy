@@ -17,11 +17,15 @@ class GifImageWidget extends StatelessWidget {
       height: screenSize.height,
       width: screenSize.width,
       fit: BoxFit.fitHeight,
+
+      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace){
+        return const GifErrorWidget();
+      },
       loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProcces){
         if(loadingProcces == null){
           return child;
         }
-        else{
+        else{ 
           return Center(
             child: CircularProgressIndicator(
               value: loadingProcces.expectedTotalBytes != null
@@ -30,10 +34,6 @@ class GifImageWidget extends StatelessWidget {
             ),
           );
         }
-      },
-      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace){
-        return const GifErrorWidget();
-      }
-    );
+      },);
   }
 }

@@ -29,9 +29,7 @@ import 'package:final_giphy/ui/screen/detailed_screen.dart';
                     strokeAlign: BorderSide.strokeAlignCenter, 
                   ),
                 ),
-                child: state == GifsLoadingState
-                ? const Center(child: CircularProgressIndicator(),)
-                : state is GifsErrorState
+                child: state.status == GifsStatus.error
                   ? const GifErrorWidget()
                   : GifImageWidget(gif: gif),
               ),

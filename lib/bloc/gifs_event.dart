@@ -10,13 +10,14 @@ sealed class GifsEvent extends Equatable{
 
 class TrendingGifsEvent extends GifsEvent{}
 
-class ScrollDownEvent extends GifsEvent{}
-
 class SearchGifsEvent extends GifsEvent{
   final String query;
 
-  const SearchGifsEvent(this.query);
+  const SearchGifsEvent({this.query = ""});
 
   @override
   List<Object> get props => [query];
 }
+
+class FetchMoreGifs extends GifsEvent{}
+

@@ -1,6 +1,6 @@
 import 'package:final_giphy/model/gif_model.dart';
 
-class GifList{
+class GifList{ // Was created for more convenient gifs processing
   final List<Gif> gifsData;
 
   GifList({required this.gifsData});

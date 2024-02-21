@@ -13,74 +13,58 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController searchController = TextEditingController();
-  final scrollController = ScrollController();
-  
-  double scrollOffset = 0;
 
-
-  TextStyle errorStyle = const TextStyle(
-    color: Colors.white,
-    fontSize: 20
-    );
-
-  @override
-  void initState(){
-    super.initState();
-    BlocProvider.of<GifsBloc>(context).add(TrendingGifsEvent());  
-  }
+  TextStyle errorStyle = const TextStyle(color: Colors.white, fontSize: 20);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: SearchAppBar(appBar: AppBar(),),
-      backgroundColor: Colors.black,
-      body: BlocBuilder<GifsBloc, GifsState>(
-        builder: (context, state) {
-          if (state is GifsInitialState) {
-            return const Center(child: Text('Enter a search query'));
-          } else if (state is GifsLoadingState) {
+    return BlocProvider(
+      create: (context) => GifsBloc()..add(TrendingGifsEvent()), // app started -> trending gifs loaded
+      child: Scaffold(
+        appBar: SearchAppBar(
+          appBar: AppBar(),
+        ),
+        backgroundColor: Colors.black,
+        body: BlocBuilder<GifsBloc, GifsState>(
+          builder: (context, state) {
+            if (state.status == GifsStatus.initial) { 
               return const Center(child: CircularProgressIndicator());
-          } else if (state is GifsLoadedState) {
-              return OrientationBuilder(
-                builder: (context, orientation){
-                if(state.gifs.isNotEmpty){
+            }
+            if (state.status == GifsStatus.success) {
+              return OrientationBuilder(builder: (context, orientation) {
+                if (state.hasGifs) {
                   return GridView.builder(
-                    controller: scrollController,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 
-                      orientation == Orientation.portrait 
-                      ? 2
-                      : 3,
+                      crossAxisCount:
+                        orientation == Orientation.portrait ? 2 : 3,
                       crossAxisSpacing: 0,
                     ),
-                    itemCount: state.gifs.length,
-                    itemBuilder: (context, index) { 
-                      if(index == state.gifs.length-10){
-                        scrollOffset = scrollController.position.maxScrollExtent;
-                        context.read<GifsBloc>().add(ScrollDownEvent());
-                        scrollController.jumpTo(scrollOffset);
+                    itemBuilder: (context, index) {
+                      if (index == state.gifs.length - 10 && state.hasGifs)  {
+                        context.read<GifsBloc>().add(FetchMoreGifs());
                       }
                       print(index);
-                      final gif = state.gifs[index];
-                      return GifTile(gif: gif);
+
+                      return GifTile(gif: state.gifs[index]);
                     },
+                    itemCount: state.gifs.length,
                   );
-                }
-                else{
+                } else {
                   return Center(
-                    child: Text(
-                      "No gifs for a current query",
-                      style: errorStyle
-                    )
-                  );
+                  child: Text("No gifs for a current query", style: errorStyle));
                 }
-              }
-            );
-          } else if (state is GifsErrorState) {
-            return Center(child: Text('Error: ${state.error}', style: errorStyle,));
-          }
-          return Container(); // return empty container by default
-        },
+              });
+            }
+            if (state.status == GifsStatus.error) {
+              return Center(
+                  child: Text(
+                'Error: ${state.errorMessage}',
+                style: errorStyle,
+              ));
+            }
+            return Container(); // return empty container by default
+          },
+        ),
       ),
     );
   }

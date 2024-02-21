@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:final_giphy/client/giphy_api.dart';
 import 'package:final_giphy/model/gif_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 part 'gifs_event.dart';
@@ -9,60 +10,69 @@ part 'gifs_state.dart';
 
 class GifsBloc extends Bloc<GifsEvent, GifsState> {
   final GiphyClient giphyClient = GiphyClient();
+  String currentQuery = "";
 
+  GifsBloc() : super(const GifsState()) {
 
-  GifsBloc() : super(GifsInitialState()) {
-  List<Gif> gifs = [];
-  int offset = 0;
-  String currentQuery = '';
-
-    on<TrendingGifsEvent>((event, emit) async {
-      emit(GifsLoadingState());
-      try {
-        gifs = [];
-        offset = 0;
-
-        List<Gif> newGifs = await giphyClient.fetchTrendingGifs();
-        gifs.addAll(newGifs); 
-
-        emit(GifsLoadedState(gifs));
-      } catch (e) {
-        emit(GifsErrorState('Failed to load gifs: $e'));
-      }
-    });
-
-    on<ScrollDownEvent>((event,emit) async{
-      emit(GifsLoadingState());
-      try{
-        offset = gifs.length;
-        if(currentQuery.isEmpty){ //Add more of trending gifs 
-          List<Gif> newGifs = await giphyClient.fetchTrendingGifs(offset);
-          gifs.addAll(newGifs);
+    on<GifsEvent>((event, emit) async {
+      if (event is TrendingGifsEvent) { // Initializing of first 50 trending gifs
+      emit(state.copyWith(status: GifsStatus.initial)); // To set the app to the loading state and move the user to the top of the app
+        try {
+          currentQuery = "";
+          final newGifs = await giphyClient.fetchGifs();
+          return newGifs.isEmpty // return messege "No gifs found" / return gif list 
+              ? emit(state.copyWith(hasGifs: false, status: GifsStatus.success))
+              : emit(state.copyWith(
+                  status: GifsStatus.success,
+                  gifs: newGifs,
+                  hasGifs: true));
+        } catch (e) {
+          emit(state.copyWith(
+              status: GifsStatus.error,
+              errorMessage: "Failed to fetch Trending Gifs: $e"));
         }
-        else{ //Add more of search by query gifs
-          List<Gif> newGifs = await giphyClient.searchGifs(currentQuery,offset);
-          gifs.addAll(newGifs);
-          
+      } else if(event is SearchGifsEvent) { // SearchGifs event processing (Has the same structure as TrendingGifs)
+        emit(state.copyWith(status: GifsStatus.initial));
+        try {
+          currentQuery = event.query;
+            final newGifs = await giphyClient.fetchGifs(query: event.query);
+            return newGifs.isEmpty 
+                ? emit(state.copyWith(hasGifs: false, status: GifsStatus.success))
+                : emit(state.copyWith(
+                    status: GifsStatus.success,
+                    gifs: newGifs,
+                    hasGifs: true));
+        } catch (e) {
+          emit(state.copyWith(
+              status: GifsStatus.error,
+              errorMessage: "Failed to Search Gifs: $e"));
         }
-        emit(GifsLoadedState(gifs));
-      } catch (e){
-        emit(GifsErrorState('Failed to add more gifs: $e'));
       }
-
-    });
-    on<SearchGifsEvent>((event, emit) async {
-      emit(GifsLoadingState());
-      try {
-        gifs = [];
-        offset = 0;
-      
-        List<Gif> newGifs = await giphyClient.searchGifs(event.query);
-        gifs.addAll(newGifs);
-        
-        currentQuery = event.query;
-        emit(GifsLoadedState(gifs));
-      } catch (e) {
-        emit(GifsErrorState('Failed to search gifs: $e'));
+      else if(event is FetchMoreGifs){ // when user almost reaches the last gif, this event is called 
+        try{
+          if(currentQuery.isEmpty){
+            final newGifs =
+            await giphyClient.fetchGifs(offset: state.gifs.length);
+            emit(state.copyWith(
+              status: GifsStatus.success,
+              gifs: List.of(state.gifs)..addAll(newGifs),
+              hasGifs: true));
+          }
+          else if (currentQuery.isNotEmpty){
+            final newGifs = await giphyClient.fetchGifs(
+            query: currentQuery,
+            offset: state.gifs.length
+            );
+            emit(state.copyWith(
+              status: GifsStatus.success,
+              gifs: List.of(state.gifs)..addAll(newGifs),
+              hasGifs: true));
+          }
+        }catch(e){
+          emit(state.copyWith(
+            status: GifsStatus.error,
+            errorMessage: "Failed to Search Gifs: $e"));
+        }
       }
     });
   }

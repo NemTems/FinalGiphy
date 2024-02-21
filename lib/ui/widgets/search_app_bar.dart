@@ -53,15 +53,10 @@ class SearchAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             border: InputBorder.none,
           ),
-          onChanged: (query) {
+          onChanged: (query) { //Initialize new gifs according to the query
             queryTimer.cancel();
-            queryTimer = Timer(const Duration(milliseconds: 1000), ()async  { 
-              if(query.isNotEmpty){
-                BlocProvider.of<GifsBloc>(context).add(SearchGifsEvent(query));
-              }
-              else{
-                BlocProvider.of<GifsBloc>(context).add(TrendingGifsEvent());
-              }
+            queryTimer = Timer(const Duration(milliseconds: 400), ()async  {
+              context.read<GifsBloc>().add(SearchGifsEvent(query: query));
             });
           },
         ),
