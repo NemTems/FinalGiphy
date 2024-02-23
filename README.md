@@ -1,16 +1,8 @@
-# final_giphy
+# Gif application//Task//Chililabs
 
-A new Flutter project.
+Flutter version: 3.10.6
+Dart version: 3.0.6
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Comment to the reviewers
+* Initially, the project was built based on several application states, for example, GifLoadingState, GifLoadedState, GifInitialState, etc. Each of them was called based on the corresponding event. But later it turned out that changing the state leads to the entire builder being completely rebuilt, which interferes with the work of "infinite scroll". I had to redo the applications to work more correctly. But I have a question, was it possible to handle this situation without changing the existing state of the program?
+* I took inspiration and knowledge from many sources, but what helped me most was the example from the official Bloc website, where, although with an old version, they show the structure of building such an application. (Link: https://bloclibrary.dev/#/flutterinfinitelisttutorial)
