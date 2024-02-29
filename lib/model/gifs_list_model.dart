@@ -1,9 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:final_giphy/model/gif_model.dart';
 
-class GifList{ // Was created for more convenient gifs processing
+class GifList extends Equatable{ // Was created for more convenient gifs processing
   final List<Gif> gifsData;
 
-  GifList({required this.gifsData});
+  const GifList({required this.gifsData});
 
   factory GifList.fromJson(Map<String, dynamic> json){
     final gifs = json['data'] as List<dynamic>;
@@ -14,5 +15,8 @@ class GifList{ // Was created for more convenient gifs processing
     }
 
     return GifList(gifsData: entities);
-  } 
+  }
+
+  @override
+  List<Object?> get props => [gifsData]; 
 }

@@ -1,9 +1,11 @@
-class ImageBase{
+import 'package:equatable/equatable.dart';
+
+class ImageBase extends Equatable{
   final String? url;
   final String? width;
   final String? height;
 
-  ImageBase({
+  const ImageBase({
     required this.url,
     required this.width,
     required this.height
@@ -14,14 +16,16 @@ class ImageBase{
     width: json['width'] as String?,
     height: json['height'] as String?,
   );
+  @override
+  List<Object?> get props => [url,width,height];
 }
 
 
-class GifsImages{
+class GifsImages extends Equatable{
   final ImageBase smallImage;
   final ImageBase detailedImage;
   
-  GifsImages({
+  const GifsImages({
     required this.smallImage,
     required this.detailedImage,
   });
@@ -30,4 +34,7 @@ class GifsImages{
     smallImage: ImageBase.fromJson(json['preview_gif'] as Map<String, dynamic>),
     detailedImage: ImageBase.fromJson(json['original'] as Map<String, dynamic>)
   );
+
+  @override
+  List<Object?> get props => [smallImage,detailedImage];
 }
